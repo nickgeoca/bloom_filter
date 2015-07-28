@@ -58,8 +58,9 @@ module BloomFilter =
                           bf   : BitSet.t; }  (* Bit array (bloom filter) *)
 
     let create (n : int) (p : float) : (string,bloomFilterT) either
-                = let m = round (-1.0 *. (float n) *. (log p) /. ((log 2.0) ** 2.0)) in
-                  let k = round ((round m) /. (float n) *. (log 2.0)) in
+                = let m' = -1.0 *. (float n) *. (log p) /. ((log 2.0) ** 2.0) in
+                  let m  = round m' in
+                  let k  = round (m' /. (float n) *. (log 2.0)) in
                   let bFT = { n = n;
                               p = p;
                               m = m;
