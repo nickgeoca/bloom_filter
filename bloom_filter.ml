@@ -19,7 +19,7 @@ module BloomFilter =
                           p    : float;       (* p  Probability of false positive *) 
                           k    : int;         (* k  Number of hashes *)
                           m    : int;         (* m  Number of bins *) 
-                         bf   : BitSet.t; }  (* Bit array (bloom filter) *)
+                         bf   : BitSet.t; }   (* Bit array (bloom filter) *)
 
     type ('a, 'b) either = Left of 'a | Right of 'b
 
