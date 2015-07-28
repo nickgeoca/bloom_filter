@@ -12,6 +12,9 @@ let getIndexes (obj : 'a) (k : int) (m : int) : int list
                 = getHashes obj m 0 k  (* Initialize salt value to zero *)
 ;;
 
+let round (x : float) : int  
+           = int_of_float (floor (x +. 0.5))
+;;
 
 module BloomFilter = 
   struct
@@ -28,9 +31,6 @@ module BloomFilter =
           | Left x  -> Left x
           | Right y -> Right (fn y)
  
-    let round (x : float) : int  
-               = int_of_float (floor (x +. 0.5))
-
     let create (n : int) (p : float) : (string,bloomFilterT) either
                 = let m = round (-1.0 *. (float n) *. (log p) /. ((log 2.0) ** 2.0)) in
                   let k = round ((float m) /. (float n) *. (log 2.0)) in
