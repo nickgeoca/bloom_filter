@@ -75,11 +75,11 @@ module BloomFilter =
         = let m' = -1.0 *. (float n) *. (log p) /. ((log 2.0) ** 2.0) in
           let m  = round m' in
           let k  = round (m' /. (float n) *. (log 2.0)) in
-          and bFT = { n = n;
+          let bFT = { n = n;
                       p = p;
                       m = m;
                       k = k;
-                      bf = (BitSet.create m) }
+                      bf = (BitSet.create m) } in
           if      m < 2              then Left "m value too small"
           else if k < 1              then Left "k value less than one"
           else if p < 0.0 || p > 1.0 then Left "p value out of range"
@@ -89,8 +89,8 @@ module BloomFilter =
         = let bf = b.bf in
           let k  = b.k in
           let m  = b.m in
-          let ks = getIndexes obj k m
-          and setBf = BitSet.set bf in
+          let ks = getIndexes obj k m in
+          let setBf = BitSet.set bf in
           List.map setBf ks;     (* Map over hash *) 
           ()
                  
@@ -100,6 +100,6 @@ module BloomFilter =
           let m  = b.m in
           let ks = getIndexes obj k m in
           let isSetBf = BitSet.is_set bf in              
-          and result = List.fold_left (&&) true (List.map isSetBf ks) 
+          let result = List.fold_left (&&) true (List.map isSetBf ks) in
           result
 end
