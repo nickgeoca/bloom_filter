@@ -5,20 +5,20 @@ Types: bloomFilterT, Either
 
 -------- Testing
 -- Create
-let bF = create 100 0.1;;
+let bF = BloomFilter.create 100 0.1;;
   Right {n = 100; p = 0.1; k = 3; m = 479; bf = <abstr>}
 
 -- Test element not in filter
-fmapEither (fun bf -> test bf "hey") bF;;
+fmapEither (fun bf -> BloomFilter.test bf "hey") bF;;
   (string, bool) either = Right false
 
 -- Test element added to filter
-fmapEither (fun bf -> insert bf "hey") bF
-fmapEither (fun bf -> test bf "hey") bF;;
+fmapEither (fun bf -> BloomFilter.insert bf "hey") bF;;
+fmapEither (fun bf -> BloomFilter.test bf "hey") bF;;
   (string, bool) either = Right true
 
 -- Test number of bits set
-fmapEither (fun bf -> BitSet.count bf.bf ) bF;;
+fmapEither (fun bf -> BitSet.count bf.BloomFilter.bf ) bF;;
   (string, int) either = Right 3
 
 -------- Equations
