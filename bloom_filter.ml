@@ -3,24 +3,38 @@
 (* -------------------------------------------------- 
    Util functions *) 
 
-let rec getHashes (obj : 'a) (m : int) (salt : int) (k : int) : int list
-                   = let h        = Hashtbl.hash (salt + Hashtbl.hash obj) in  (* hash salt and hashed value. Ensures hash changes every time *)
-                     let toMask x = truncate (2.0 ** (float (1 + truncate (log (float x) /. log 2.0))) -. 1.0) in  (* This was tested for correctness *)
-                     let bitmask  = toMask m in
-                     let index    = bitmask land h in
-                     let test     = index < m in           (* index should be less than m... i.e. 'm'=10, so 'index' is 0 to 9 *)
-                     if k == 0 then []
-                     else if test then index :: getHashes obj m (salt + 1) (k-1) (* Can use hash, so decrement k *)
-                          else                  getHashes obj m (salt + 1) k     (* Case where can't use hash, so increase salt *)
+(* 0b0100 => 0b0111 ; 0b101 => 0b111 *)
+let setAllBitsRightOfLeadingOne (x : int) : int
+    = List.fold_right (fun a b -> b lor (b lsr a)) [1;2;4;8;16] x;;
+
+let createIndex (h : int) (m : int) : int
+    = let bitmask = setAllBitsRightOfLeadingOne m in
+      let index   = bitmask land h in
+      index;;
+
+let hashWithSalt (obj : 'a) (salt : int) : int = Hashtbl.hash (salt + Hashtbl.hash obj);;  (* Hash object and salt *)
+
+(* Hash value must map to index value. Hash is much bigger than range of the index (0 to m-1), and
+ * this creates a challenge. Taking modulo of hash is one method, but is erroneous b/c it doesn't
+ * produce a uniform distribution of index values. 
+ * Solution is to only take hash values from 0 to m-1. Optimize by masking out bits larger than (m-1).
+ * Example, probability of valid hash: if m = 1000, then the odds of a 32 bit hash being less than 'm' is about 1000 / 2^32 
+ *)
+let rec getIndexes' (obj : 'a) (m : int) (salt : int) (k : int) : int list =
+    match k with 
+      0 -> []
+    | _ -> let h     = hashWithSalt obj salt in
+           let index = createIndex h m in
+           match (index < m) with                                  (* index should be in bounds... i.e. 'm'=10, so valid indexes are 0 to 9 *)
+             true  -> index :: getIndexes' obj m (salt + 1) (k-1)  (* Can use index. Decrement k *)
+           | false ->          getIndexes' obj m (salt + 1) k      (* Can't use index, so try again *)
 ;;
 
 let getIndexes (obj : 'a) (k : int) (m : int) : int list
-                = getHashes obj m 0 k  (* Initialize salt value to zero *)
+    = getIndexes' obj m 0 k  (* Initialize salt value to zero *)
 ;;
 
-let round (x : float) : int  
-           = int_of_float (floor (x +. 0.5))
-;;
+let round (x : float) : int = int_of_float (floor (x +. 0.5));;
 
 (* -------------------------------------------------- 
    Either type *) 
@@ -71,13 +85,14 @@ module BloomFilter =
                   else if p < 0.0 || p > 1.0 then Left "p value out of range"
                   else Right bFT
 
-    let insert (b : bloomFilterT) (obj : 'a) : unit list
+    let insert (b : bloomFilterT) (obj : 'a) : unit
                 = let bf = b.bf in
                   let k  = b.k in
                   let m  = b.m in
                   let ks = getIndexes obj k m
                   and setBf = BitSet.set bf in
-                  List.map setBf ks     (* Map over hash *) 
+                  List.map setBf ks;     (* Map over hash *) 
+                  ()
                  
     let test (b : bloomFilterT) (obj : 'a) : bool 
               = let bf = b.bf in
