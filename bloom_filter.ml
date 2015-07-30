@@ -65,13 +65,13 @@ let fmapEither (fn : 'b -> 'c) (eith : ('a,'b) either) : ('a,'c) either
 
 module BloomFilter = 
   struct
-    type bloomFilterT = { n    : int;         (* n  Expected number of elements *)
-                          p    : float;       (* p  Probability of false positive *) 
-                          k    : int;         (* k  Number of hashes *)
-                          m    : int;         (* m  Number of bins *) 
-                          bf   : BitSet.t; }  (* Bit array (bloom filter) *)
+    type 'a bloomFilterT = { n    : int;         (* n  Expected number of elements *)
+                             p    : float;       (* p  Probability of false positive *) 
+                             k    : int;         (* k  Number of hashes *)
+                             m    : int;         (* m  Number of bins *) 
+                             bf   : BitSet.t; }  (* Bit array (bloom filter) *)
 
-    let create (n : int) (p : float) : (string,bloomFilterT) either
+    let create (n : int) (p : float) : (string,'a bloomFilterT) either
         = let m' = -1.0 *. (float n) *. (log p) /. ((log 2.0) ** 2.0) in
           let m  = round m' in
           let k  = round (m' /. (float n) *. (log 2.0)) in
@@ -85,7 +85,7 @@ module BloomFilter =
           else if p < 0.0 || p > 1.0 then Left "p value out of range"
           else Right bFT
 
-    let insert (b : bloomFilterT) (obj : 'a) : unit
+    let insert (b : 'a bloomFilterT) (obj : 'a) : unit
         = let bf = b.bf in
           let k  = b.k in
           let m  = b.m in
@@ -94,7 +94,7 @@ module BloomFilter =
           List.map setBf ks;     (* Map over hash *) 
           ()
                  
-    let test (b : bloomFilterT) (obj : 'a) : bool 
+    let test (b : 'a bloomFilterT) (obj : 'a) : bool 
         = let bf = b.bf in
           let k  = b.k in
           let m  = b.m in

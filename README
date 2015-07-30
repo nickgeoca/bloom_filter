@@ -4,8 +4,11 @@ Types: bloomFilterT, Either
 "create" returns an either type (left error string, right bloomFilterT). Use fmapEither to modify the bloom filter
 
 -------- Testing
--- Create
-let bF = BloomFilter.create 100 0.1;;
+-- Create. Force monomorphic type for input with explicit type casting... (expr :> type)
+-- For example, string is forced:
+--  (string, 'a     BloomFilter.bloomFilterT) either)
+--  (string, string BloomFilter.bloomFilterT) either)
+let bF = (BloomFilter.create 100 0.1 :> (string, string BloomFilter.bloomFilterT) either);;
   Right {n = 100; p = 0.1; k = 3; m = 479; bf = <abstr>}
 
 -- Test element not in filter
