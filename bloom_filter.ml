@@ -42,21 +42,21 @@ let round (x : float) : int = int_of_float (floor (x +. 0.5));;
 type ('a, 'b) either = Left of 'a | Right of 'b;;
 
 let getLeft (eith : ('a,'b) either) : 'a list
-      = match eith with
-      | Left x  -> x :: []
-      | Right y -> []
+    = match eith with
+    | Left x  -> x :: []
+    | Right y -> []
 ;;
 
 let getRight (eith : ('a,'b) either) : 'b list
-      = match eith with
-      | Left x  -> []
-      | Right y -> y :: []
+    = match eith with
+    | Left x  -> []
+    | Right y -> y :: []
 ;;
 
 let fmapEither (fn : 'b -> 'c) (eith : ('a,'b) either) : ('a,'c) either
-      = match eith with
-      | Left x  -> Left x
-      | Right y -> Right (fn y)
+    = match eith with
+    | Left x  -> Left x
+    | Right y -> Right (fn y)
 ;;
 
 
@@ -72,34 +72,34 @@ module BloomFilter =
                           bf   : BitSet.t; }  (* Bit array (bloom filter) *)
 
     let create (n : int) (p : float) : (string,bloomFilterT) either
-                = let m' = -1.0 *. (float n) *. (log p) /. ((log 2.0) ** 2.0) in
-                  let m  = round m' in
-                  let k  = round (m' /. (float n) *. (log 2.0)) in
-                  let bFT = { n = n;
-                              p = p;
-                              m = m;
-                              k = k;
-                              bf = (BitSet.create m) } in
-                  if      m < 2              then Left "m value too small"
-                  else if k < 1              then Left "k value less than one"
-                  else if p < 0.0 || p > 1.0 then Left "p value out of range"
-                  else Right bFT
+        = let m' = -1.0 *. (float n) *. (log p) /. ((log 2.0) ** 2.0) in
+          let m  = round m' in
+          let k  = round (m' /. (float n) *. (log 2.0)) in
+          and bFT = { n = n;
+                      p = p;
+                      m = m;
+                      k = k;
+                      bf = (BitSet.create m) }
+          if      m < 2              then Left "m value too small"
+          else if k < 1              then Left "k value less than one"
+          else if p < 0.0 || p > 1.0 then Left "p value out of range"
+          else Right bFT
 
     let insert (b : bloomFilterT) (obj : 'a) : unit
-                = let bf = b.bf in
-                  let k  = b.k in
-                  let m  = b.m in
-                  let ks = getIndexes obj k m
-                  and setBf = BitSet.set bf in
-                  List.map setBf ks;     (* Map over hash *) 
-                  ()
+        = let bf = b.bf in
+          let k  = b.k in
+          let m  = b.m in
+          let ks = getIndexes obj k m
+          and setBf = BitSet.set bf in
+          List.map setBf ks;     (* Map over hash *) 
+          ()
                  
     let test (b : bloomFilterT) (obj : 'a) : bool 
-              = let bf = b.bf in
-                let k  = b.k in
-                let m  = b.m in
-                let ks = getIndexes obj k m in
-                let isSetBf = BitSet.is_set bf in              
-                let result = List.fold_left (&&) true (List.map isSetBf ks) in
-                result
+        = let bf = b.bf in
+          let k  = b.k in
+          let m  = b.m in
+          let ks = getIndexes obj k m in
+          let isSetBf = BitSet.is_set bf in              
+          and result = List.fold_left (&&) true (List.map isSetBf ks) 
+          result
 end
