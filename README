@@ -4,24 +4,23 @@ Types: bloomFilterT, Either
 "create" returns an either type (left error string, right bloomFilterT). Use fmapEither to modify the bloom filter
 
 -------- Testing
--- Create. Force monomorphic type for input with explicit type casting... (expr :> type)
--- For example, string is forced:
---  (string, 'a     BloomFilter.bloomFilterT) either)
---  (string, string BloomFilter.bloomFilterT) either)
-let bF = (BloomFilter.create 100 0.1 :> (string, string BloomFilter.bloomFilterT) either);;
-  Right {n = 100; p = 0.1; k = 3; m = 479; bf = <abstr>}
+-- Use functor to force type
+-- Example modules are provided. Integer is used in this case
+module S = BloomFilter (String);;
+let bF = S.create 100 0.1;;
+  Right {S.n = 100; p = 0.1; k = 3; m = 479; bf = <abstr>}
 
 -- Test element not in filter
-fmapEither (fun bf -> BloomFilter.test bf "hey") bF;;
-  (string, bool) either = Right false
+fmapEither (fun bf -> S.test bf "hey") bF;;
+ (string, bool) either = Right false
 
 -- Test element added to filter
-fmapEither (fun bf -> BloomFilter.insert bf "hey") bF;;
-fmapEither (fun bf -> BloomFilter.test bf "hey") bF;;
+fmapEither (fun bf -> S.insert bf "hey") bF;;
+fmapEither (fun bf -> S.test bf "hey") bF;;
   (string, bool) either = Right true
 
 -- Test number of bits set
-fmapEither (fun bf -> BitSet.count bf.BloomFilter.bf ) bF;;
+fmapEither (fun bf -> BitSet.count bf.S.bf ) bF;;
   (string, int) either = Right 3
 
 -------- Equations
